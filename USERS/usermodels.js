@@ -1,6 +1,6 @@
 class User {
     constructor(id, first_name, last_name, pasport_id, data_birth) {
-        this.id = id
+        this.id = id;
         this.first_name = first_name;
         this.last_name = last_name;
         this.pasport_id = pasport_id;

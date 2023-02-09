@@ -13,8 +13,6 @@ const User = require('../users/usermodels');
 
 app.post('/api/rooms', (req, res) => {
     const addNewRoom = req.body.roomNumber
-    console.log(addNewRoom)
-    console.log(typeof addNewRoom)
     if (typeof addNewRoom == 'number') {
         const newCreatedRoom = new Room(addNewRoom, 0);
         allCreatedRooms.push(newCreatedRoom);
