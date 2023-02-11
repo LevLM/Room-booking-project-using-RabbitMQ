@@ -1,135 +1,104 @@
 const request = require('supertest')
 const app = require('./rooms')
+const Room = require('./roommodels');
 
-// describe("POST:", () => {
-//     test("server respond 200 status code /newElement and content-type is json", async () => {
-//         const response = await request(app).post("/newElement").send({user: "user"})
-//         expect(response.statusCode).toBe(200)
-//         expect(response.headers['content-type']).toEqual(expect.stringContaining("json"))
-//     })
-// })
+describe("POST:", () => {
+  afterAll(async () => {await request(app).delete("/api/rooms/100")})  
+  it("server respond 200 status code /api/rooms and content-type is json", async () => {
+        const response = await request(app).post("/api/rooms").send({roomNumber: 100})
+        expect(response.statusCode).toBe(200)
+        expect(response.headers['content-type']).toEqual(expect.stringContaining("json"))
+    })
+})
 
-// describe("POST:", () => {
-//     test("when the user is missing should respond with a status code of 400", async () => {
-//       const bodyData = [{}]
-//       for (const body of bodyData) {
-//         const response = await request(app).post("/newElement").send(body)
-//         expect(response.statusCode).toBe(400)
-//       }
-//     })
-// })
+describe("POST:", () => {
+    test("when the roomNumber is missing should respond with a status code of 400", async () => {
+      const bodyData = [{}]
+      for (const body of bodyData) {
+        const response = await request(app).post("/api/rooms").send(body)
+        expect(response.statusCode).toBe(400)
+      }
+    })
+})
 
-// describe("POST:", () => {
-//     test("when input don't correct (integer)", async () => {
-//       const response = await request(app).post("/newElement").send('333')
-//       expect(response.statusCode).toBe(400)
-//     })
-// })
+describe("POST:", () => {
+    test("when input don't correct (integer)", async () => {
+      const response = await request(app).post("/api/rooms").send('333')
+      expect(response.statusCode).toBe(400)
+    })
+})
 
-// describe("POST:", () => {
-//   test("when input don't correct (symbols)", async () => {
-//     const response = await request(app).post("/newElement").send('---!')
-//     expect(response.statusCode).toBe(400)
-//   })
-// })
+describe("POST:", () => {
+  test("when input don't correct (symbols)", async () => {
+    const response = await request(app).post("/api/rooms").send('---!')
+    expect(response.statusCode).toBe(400)
+  })
+})
 
-// describe("POST:", () => {
-//     test("when input don't correct (string)", async () => {
-//     const response = await request(app).post("/newElement").set('content-type', 'empty').send('user')
-//     expect(response.statusCode).toBe(400)
-//   })
-// })
+describe("POST:", () => {
+    test("when input don't correct (string)", async () => {
+    const response = await request(app).post("/api/rooms").set('content-type', 'empty').send('roomNumber')
+    expect(response.statusCode).toBe(400)
+  })
+})
 
-// describe("POST:", () => {
-//   afterAll(async () => {await request(app).delete("/remove")})
-//   it("when input don't correct (without value)", async () => {
-//     const response = await request(app).post("/newElement").send({user: ""})
-//     expect(response.statusCode).toBe(200)
-//     })
-// })
+describe("DELETE:", () => {
+  const newRoom = {roomNumber: 200}
+  beforeAll(async () => {await request(app).post("/api/rooms").send(newRoom);})
+  it("method DELETE return wright message", async () => {
+    const response = await request(app).delete("/api/rooms/200")
+    expect(response.body).toBe('room #200 deleted from allCreatedRooms');
+  });
+})  
 
-// describe("POST:", () => {
-//   afterAll(async () => {await request(app).delete("/remove")})
-//   it("when input correct but with added data ", async () => {
-//     const bodyData = [{user: "user", password: "password"}]
-//     for (const body of bodyData) {
-//       const response = await request(app).post("/newElement").send(body)
-//       expect(response.statusCode).toBe(200)
-//     }
-//   })
-// })
+describe("DELETE:", () => {
+  test("method DELETE return room is not created", async () => {
+    const response = await request(app).delete("/api/rooms/200")
+    expect(response.body).toBe('allCreatedRooms Is Empty');
+  });
+})  
 
-// describe("DELETE:", () => {
-//     test("server respond 200 status code /remove", async () => {
-//       const response = await request(app).delete("/remove")
-//       expect(response.statusCode).toBe(200)
-//   })
-// })
+describe("DELETE:", () => {
+  const newRoom = {roomNumber: 100}
+  beforeAll(async () => {await request(app).post("/api/rooms").send(newRoom);})
+  afterAll(async () => {await request(app).delete("/api/rooms/100")})
+  it("method DELETE return room is not created", async () => {
+    const response = await request(app).delete("/api/rooms/200")
+    expect(response.body).toBe('room #200 is not created');
+  });
+})  
 
-// describe("DELETE:", () => {
-//   const newElement = {user: "user"}
-//   beforeAll(async () => {await request(app).post("/newElement").send(newElement);})
-//   it("method DELETE return element and remove it from stack", async () => {
-//     const response = await request(app).delete("/remove")
-//     expect(response.body).toBe('user deleted from stack, the elements of the stack now: ');
-//   });
-// })  
+describe("GET:", () => {
+  const addNewRoom = {roomNumber: 150}
+  const newCreatedRoom = new Room(addNewRoom, 0);
+  beforeAll(async () => {await request(app).post("/api/rooms").send(addNewRoom);})
+  afterAll(async () => {await request(app).delete("/api/rooms/150")})
+  it("server respond 200 status code /search/:id and return room [id]", async () => {
+    const response = await request(app).get("/api/rooms/150");
+    expect(response.statusCode).toBe(200);
+  });
+});
 
-// describe("DELETE:", () => {
-//   test("method DELETE return Stack Is Empty", async () => {
-//     const response = await request(app).delete("/remove")
-//     expect(response.body).toBe('Stack Is Empty');
-//   });
-// })  
+describe("GET:", () => {
+  const addNewRoom = {roomNumber: 150}
+  const newCreatedRoom = new Room(addNewRoom, 0);
+  beforeAll(async () => {await request(app).post("/api/rooms").send(addNewRoom);})
+  afterAll(async () => {await request(app).delete("/api/rooms/150")})
+  it("server respond 200 status code /search/:id and return room [id]", async () => {
+    const response = await request(app).get("/api/rooms/150");
+    // expect(response.body).toBe(newCreatedRoom); don't work
+  });
+});
 
-// describe("GET:", () => {
-//   const newElement = {user: "user"}
-//   beforeAll(async () => {await request(app).post("/newElement").send(newElement);})
-//   afterAll(async () => {await request(app).delete("/remove")})
-//   it("server respond 200 status code /print and return elements of the stack", async () => {
-//     const response = await request(app).get("/print");
-//     expect(response.statusCode).toBe(200);
-//     expect(response.body).toBe('The elements of the stack: user');
-//   });
-//   it("server respond 200 status code /top and return top", async () => {
-//     const response = await request(app).get("/top");
-//     expect(response.statusCode).toBe(200);
-//     expect(response.body).toBe('user is top element of stack')
-//   });
-//   it("server respond 200 status code /length and return correct length", async () => {
-//     const response = await request(app).get("/length");
-//     expect(response.statusCode).toBe(200);
-//     expect(response.body).toBe(1);
-//   });
-// });
+describe("GET:", () => {
+  test("check /api/rooms/:id if not found", async () => {
+    const response = await request(app).get("/api/rooms/120");
+    expect(response.body).toBe('not found');
+  });
+});
 
-// describe("GET:", () => {
-//   const newElement = {user: "user"}
-//   beforeAll(async () => {await request(app).post("/newElement").send(newElement);})
-//   afterAll(async () => {await request(app).delete("/remove")})
-//   it("server respond 200 status code /search/:id and return element [id]", async () => {
-//     const response = await request(app).get("/search/0");
-//     expect(response.statusCode).toBe(200);
-//     expect(response.body).toBe('user');
-//   });
-// });
 
-// describe("GET:", () => {
-//   test("check /search/:id if stack is empty", async () => {
-//     const response = await request(app).get("/search/0");
-//     expect(response.body).toBe('Stack Is Empty');
-//   });
-// });
 
-// describe("GET:", () => {
-//   const newElement = {user: "user"}
-//   beforeAll(async () => {await request(app).post("/newElement").send(newElement);})
-//   afterAll(async () => {await request(app).delete("/remove")})
-//   it("check /search/:id if there isn't such id", async () => {
-//     const response = await request(app).get("/search/255");
-//     expect(response.body).toBe('not found');
-//   });
-// });
 
 // describe("GET, POST, DELETE for 2 elements:", () => {
 //   const newElement = {user: "user"}

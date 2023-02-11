@@ -37,6 +37,10 @@ app.delete('/api/rooms/:id', (req, res) => {
             console.log('room #', id, ' deleted from allCreatedRooms')
             res.json('room #' + id + ' deleted from allCreatedRooms')
         }
+        else {
+            console.log('room #', id, ' is not created')
+            res.json('room #' + id + ' is not created')
+        }
     }
     console.log(allCreatedRooms)
 });
@@ -112,3 +116,5 @@ app.post('/api/rooms/:id/exituser', (req, res) => {
 app.listen(5050, () => {
     console.log('server started');
 });
+
+module.exports = app
