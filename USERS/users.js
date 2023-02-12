@@ -61,3 +61,5 @@ app.post('/api/users', (req, res) => {
 app.listen(4000, () => {
     console.log('server started');
 });
+
+module.exports = app

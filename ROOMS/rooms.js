@@ -78,7 +78,7 @@ app.post('/api/rooms/:id/enteruser', (req, res) => {
         }
         else {
             console.log('room is occupied by user: ', user.id);
-            res.json('room is occupied by user: ' + user.id);
+            res.status(500).json('room is occupied by user: ' + user.id);
         }
     }
     else {
@@ -104,7 +104,7 @@ app.post('/api/rooms/:id/exituser', (req, res) => {
         }
         else {
             console.log('room is not occupied');
-            res.json('room is not occupied');
+            res.status(500).json('room is not occupied');
         }
     }
     else {
