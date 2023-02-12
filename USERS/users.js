@@ -1,15 +1,21 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const app = express();
+const app2 = express();
 const User = require('./usermodels');
-const amqp = require('amqplib/callback_api');
+// const axios = require('axios');
+// const amqp = require('amqplib/callback_api');
+const port = 4000;
 
 // Configuring body parser middleware
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app2.use(bodyParser.urlencoded({ extended: false }));
+app2.use(bodyParser.json());
 
 const allUsers = [];
+const user3 = new User(3, 'Ivan', 'Ivanov', '123', '01/04/2001');
+allUsers.push(user3);
+const user4 = new User(4, 'Petr', 'Petrov', '567', '01/08/2011');
+allUsers.push(user4);
 // const userStatus = [];
 
 // app.get('/api/users/:id/enterroom', (req, res) => {
@@ -23,7 +29,7 @@ const allUsers = [];
 //       }
 // });
 
-app.post('/api/users', (req, res) => {
+app2.post('/api/users', (req, res) => {
     console.log(req.body)
     const { id, first_name, last_name, pasport_id, data_birth } = req.body;
     if (!id || !first_name || !last_name || !pasport_id || !data_birth) {
@@ -58,8 +64,22 @@ app.post('/api/users', (req, res) => {
     console.log('User created successfully ', allUsers)
 });
 
-app.listen(4000, () => {
-    console.log('server started');
+// Get user state endpoint
+app2.put('/api/users/:id/state', (req, res) => {
+    let id = req.params.id
+    const state = req.body.state;
+    const user = allUsers.find(user => user.id === id);
+    if (!user) {
+      return res.status(404).send({error: 'User not found'});
+    }
+    user.state = state;
+    // save the updated user to the database
+    saveUser(user);
+    res.status(200).json({ message: 'User state updated successfully' });
 });
 
-module.exports = app
+app2.listen(port, () => {
+    console.log('server started at http://localhost:${port}');
+});
+
+module.exports = app2

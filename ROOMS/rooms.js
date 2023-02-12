@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const app = express();
+const axios = require('axios');
 
 // Configuring body parser middleware
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -61,7 +62,7 @@ app.get('/api/rooms/:id', (req, res) => {
 
 const user = new User(2, 'John', 'Doe', 'P1234567', '01/01/2000');
 
-app.post('/api/rooms/:id/enteruser', (req, res) => {
+app.post('/api/rooms/:id/enteruser', async (req, res) => {
     let id = req.params.id
     let findRoom = null;
     for (const room of allCreatedRooms) {
@@ -73,8 +74,16 @@ app.post('/api/rooms/:id/enteruser', (req, res) => {
     if (findRoom) {
         if (findRoom.roomStatus == 0) {
             findRoom.roomStatus = user.id
-            console.log(findRoom);
-            res.json(findRoom);
+            const state = 'entered'
+            // axios.put('http://localhost:4000/api/users/${user.id}/state', {state})
+            //     .then(response => {
+                    console.log(findRoom);
+                    res.status(200).json(findRoom);
+                // })
+                // .catch(error => {
+                //     console.log(error);
+                //     res.status(500).json({ error });
+                // });
         }
         else {
             console.log('room is occupied by user: ', user.id);
@@ -87,7 +96,7 @@ app.post('/api/rooms/:id/enteruser', (req, res) => {
     }
 });
 
-app.post('/api/rooms/:id/exituser', (req, res) => {
+app.post('/api/rooms/:id/exituser', async (req, res) => {
     let id = req.params.id
     let findRoom = null;
     for (const room of allCreatedRooms) {
@@ -99,8 +108,16 @@ app.post('/api/rooms/:id/exituser', (req, res) => {
     if (findRoom) {
         if (findRoom.roomStatus != 0) {
             findRoom.roomStatus = 0
-            console.log(findRoom);
-            res.json(findRoom);
+            const state = 'exited'
+            // axios.put('http://localhost:4000/api/users/${user.id}/state', {state})
+            //     .then(response => {
+                    console.log(findRoom);
+                    res.status(200).json(findRoom);
+                // })
+                // .catch(error => {
+                //     console.log(error);
+                //     res.status(500).json({ error });
+                // });
         }
         else {
             console.log('room is not occupied');
@@ -114,7 +131,11 @@ app.post('/api/rooms/:id/exituser', (req, res) => {
 });
 
 app.listen(5050, () => {
-    console.log('server started');
+    console.log('server started on port 5050');
 });
+
+// app.listen(4000, () => {
+//     console.log('service listening on port 4000 for connect with Users service');
+// });
 
 module.exports = app
