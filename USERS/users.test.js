@@ -20,10 +20,10 @@ describe("POST (users):", () => {
     })
 })
 
-// describe("GET (enter room):", () => {
-//     test("check if user entered in some room", async () => {
-//         const response = await request(app).get('/api/users/2/state')
-//         expect(response.statusCode).toBe(200)
-//         expect(response.body).toEqual({state: user.state})
-//     })
-// })
+describe("GET (enter room):", () => {
+    test("check if user entered in some room", async () => {
+        const response = await request(app).get('/api/users/2/state')
+        expect(response.statusCode).toBe(200)
+        expect(response.body).toEqual({state: user.state})
+    })
+})

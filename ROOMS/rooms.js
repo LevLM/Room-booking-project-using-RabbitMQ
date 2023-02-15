@@ -10,7 +10,7 @@ app.use(bodyParser.json());
 
 const allCreatedRooms = [];
 const Room = require('./roommodels');
-const User = require('../users/usermodels');
+// const User = require('../users/usermodels');
 
 app.post('/api/rooms', (req, res) => {
     const addNewRoom = req.body.roomNumber
@@ -60,7 +60,7 @@ app.get('/api/rooms/:id', (req, res) => {
     res.json(findRoom ? findRoom : 'not found');
 });
 
-const user = new User(2, 'John', 'Doe', 'P1234567', '01/01/2000');
+// const user = new User(2, 'John', 'Doe', 'P1234567', '01/01/2000');
 
 app.post('/api/rooms/:id/enteruser', async (req, res) => {
     let id = req.params.id
@@ -72,18 +72,23 @@ app.post('/api/rooms/:id/enteruser', async (req, res) => {
         }
     }
     if (findRoom) {
+        // const user.id = req.body.user.id;
+        const userId = 2;
+        const response = await axios.get(`http://localhost:4022/api/users/${userId}`);
+        const user = response.data;
         if (findRoom.roomStatus == 0) {
             findRoom.roomStatus = user.id
             const state = 'entered'
-            // axios.put('http://localhost:4000/api/users/${user.id}/state', {state})
-            //     .then(response => {
-                    console.log(findRoom);
-                    res.status(200).json(findRoom);
-                // })
-                // .catch(error => {
-                //     console.log(error);
-                //     res.status(500).json({ error });
-                // });
+            console.log(user.id)
+            const server2 = `http://localhost:4022/api/users/${user.id}/state`;
+            // try {
+            //     const response = await axios.put(server2, { state });
+                console.log(findRoom);
+                res.status(200).json(findRoom);
+            // } catch (error) {
+            //     console.log(error);
+            //     res.status(500).json({ error });
+            // }
         }
         else {
             console.log('room is occupied by user: ', user.id);
@@ -109,7 +114,7 @@ app.post('/api/rooms/:id/exituser', async (req, res) => {
         if (findRoom.roomStatus != 0) {
             findRoom.roomStatus = 0
             const state = 'exited'
-            // axios.put('http://localhost:4000/api/users/${user.id}/state', {state})
+            // axios.put('http://localhost:4022/api/users/${user.id}/state', {state})
             //     .then(response => {
                     console.log(findRoom);
                     res.status(200).json(findRoom);
@@ -133,9 +138,5 @@ app.post('/api/rooms/:id/exituser', async (req, res) => {
 app.listen(5050, () => {
     console.log('server started on port 5050');
 });
-
-// app.listen(4000, () => {
-//     console.log('service listening on port 4000 for connect with Users service');
-// });
 
 module.exports = app

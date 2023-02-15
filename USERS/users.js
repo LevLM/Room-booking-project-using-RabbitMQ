@@ -5,7 +5,7 @@ const app2 = express();
 const User = require('./usermodels');
 // const axios = require('axios');
 // const amqp = require('amqplib/callback_api');
-const port = 4000;
+const port = 4022;
 
 // Configuring body parser middleware
 app2.use(bodyParser.urlencoded({ extended: false }));
@@ -64,6 +64,20 @@ app2.post('/api/users', (req, res) => {
     console.log('User created successfully ', allUsers)
 });
 
+app2.get('/api/users/:id', (req, res) => {
+    let id = req.params.id;
+    console.log('view user by id ' + id);
+    let findUser = null;
+    for (const user of allUsers) {
+        if (user.id == id) {
+            findUser = user;
+            break;
+        }
+    }
+    console.log(findUser ? findUser : 'not found');
+    res.json(findUser ? findUser : 'not found');
+});
+
 // Get user state endpoint
 app2.put('/api/users/:id/state', (req, res) => {
     let id = req.params.id
@@ -79,7 +93,7 @@ app2.put('/api/users/:id/state', (req, res) => {
 });
 
 app2.listen(port, () => {
-    console.log('server started at http://localhost:${port}');
+    console.log(`server started at http://localhost:${port}`);
 });
 
 module.exports = app2
