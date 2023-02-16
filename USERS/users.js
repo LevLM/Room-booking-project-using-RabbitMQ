@@ -81,8 +81,11 @@ app2.get('/api/users/:id', (req, res) => {
 // Get user state endpoint
 app2.put('/api/users/:id/state', (req, res) => {
     let id = req.params.id
+    console.log(id)
     const state = req.body.state;
-    const user = allUsers.find(user => user.id === id);
+    console.log(state)
+    const user = allUsers.find(user => user.id == id);
+    console.log(user)
     if (!user) {
       return res.status(404).send({error: 'User not found'});
     }

@@ -81,14 +81,15 @@ app.post('/api/rooms/:id/enteruser', async (req, res) => {
             const state = 'entered'
             console.log(user.id)
             const server2 = `http://localhost:4022/api/users/${user.id}/state`;
-            // try {
-            //     const response = await axios.put(server2, { state });
+            console.log(server2)
+            try {
+                const response = await axios.put(server2, { state });
                 console.log(findRoom);
                 res.status(200).json(findRoom);
-            // } catch (error) {
-            //     console.log(error);
-            //     res.status(500).json({ error });
-            // }
+            } catch (error) {
+                console.log(error);
+                res.status(500).json({ error });
+            }
         }
         else {
             console.log('room is occupied by user: ', user.id);
