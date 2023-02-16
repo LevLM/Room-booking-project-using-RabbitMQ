@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+  users:
+    build: ./users
+    ports:
+      - '4022:4022'
+    depends_on:
+      - db
+  rooms:
+    build: ./rooms
+    ports:
+      - '5050:5050'
+    depends_on:
+      - db
+  db:
+    image: postgres:13.0-alpine
+    volumes:
+      - dbdata:/var/lib/postgresql/data/
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_PASSWORD=ghbdtn11
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=bookroom
+
+volumes:
+  dbdata:
