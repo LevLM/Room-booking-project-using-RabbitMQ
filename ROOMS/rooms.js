@@ -5,7 +5,6 @@ const app = express();
 const axios = require('axios');
 const amqp = require('amqplib/callback_api');
 
-// Configuring body parser middleware
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 

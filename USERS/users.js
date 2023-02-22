@@ -3,11 +3,9 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const app2 = express();
 const User = require('./usermodels');
-// const axios = require('axios');
 const amqp = require('amqplib/callback_api');
 const port = 4022;
 
-// Configuring body parser middleware
 app2.use(bodyParser.urlencoded({ extended: false }));
 app2.use(bodyParser.json());
 
@@ -19,38 +17,32 @@ allUsers.push(user4);
 
 const QUEUE_NAME = 'user_created';
 
-app2.post('/api/users', (req, res) => {
-    const { id, first_name, last_name, pasport_id, data_birth } = req.body;
-    if (!id || !first_name || !last_name || !pasport_id || !data_birth) {
-        return res.status(400).send({ error: 'Invalid data' });
+amqp.connect('amqp://localhost:5672', function(error0, connection) {
+    if (error0) {
+      throw error0;
     }
-    const newUser = new User(id, first_name, last_name, pasport_id, data_birth);
-    allUsers.push(newUser);
+  connection.createChannel(function(error1, channel) {
+      if (error1) {
+        throw error1;
+      }
+      channel.assertQueue(QUEUE_NAME, {
+        durable: false
+      });
 
-    amqp.connect('amqp://localhost:5672', function(error0, connection) {
-        if (error0) {
-          throw error0;
-        }
-        connection.createChannel(function(error1, channel) {
-          if (error1) {
-            throw error1;
-          }
-          channel.assertQueue(QUEUE_NAME, {
-            durable: false
-          });
-          // Send user data to Room service
-          const message = JSON.stringify(newUser);
-          channel.sendToQueue(QUEUE_NAME, Buffer.from(message));
-          console.log(" [x] Sent %s", message);
-        });
-        // setTimeout(function() {
-        //   connection.close();
-        //   process.exit(0);
-        // }, 500);
+    app2.post('/api/users', (req, res) => {
+      const { id, first_name, last_name, pasport_id, data_birth } = req.body;
+      if (!id || !first_name || !last_name || !pasport_id || !data_birth) {
+          return res.status(400).send({ error: 'Invalid data' });
+      }
+      const newUser = new User(id, first_name, last_name, pasport_id, data_birth);
+      allUsers.push(newUser);
+      const message = JSON.stringify(newUser);
+      channel.sendToQueue(QUEUE_NAME, Buffer.from(message));
+      console.log(" [x] Sent %s", message);
+      res.status(201).send('User created successfully ');
+      console.log('User created successfully ', allUsers)
     });
-
-    res.status(201).send('User created successfully ');
-    console.log('User created successfully ', allUsers)
+  });
 });
 
 app2.get('/api/users/:id', (req, res) => {
@@ -67,7 +59,6 @@ app2.get('/api/users/:id', (req, res) => {
     res.json(findUser ? findUser : 'not found');
 });
 
-// Get user state endpoint
 app2.put('/api/users/:id/state', (req, res) => {
     let id = req.params.id
     const state = req.body.state;
