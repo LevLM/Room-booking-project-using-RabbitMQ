@@ -8,6 +8,15 @@ const amqp = require('amqplib/callback_api');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+const Pool = require('pg').Pool
+const pool = new Pool({
+  user: 'admin',
+  host: 'db',
+  database: 'bookroom',
+  password: 'ghbdtn11',
+  port: 5432,
+})
+
 const allCreatedRooms = [];
 const Room = require('./roommodels');
 // const User = require('../users/usermodels');
@@ -69,7 +78,8 @@ app.get('/api/rooms/:id', (req, res) => {
 
 // const user = new User(2, 'John', 'Doe', 'P1234567', '01/01/2000');
 
-amqp.connect('amqp://localhost:5672', function(error0, connection) {
+// amqp.connect('amqp://localhost:5672', function(error0, connection) {
+amqp.connect('amqp://rabbitmq:5672', function(error0, connection) {
   if (error0) {
     throw error0;
   }
@@ -102,7 +112,8 @@ app.post('/api/rooms/:id/enteruser', async (req, res) => {
     if (findRoom) {
         // const user.id = req.body.user.id;
         const userId = 2;
-        const response = await axios.get(`http://localhost:4022/api/users/${userId}`);
+        // const response = await axios.get(`http://localhost:4022/api/users/${userId}`);
+        const response = await axios.get(`http://users:4022/api/users/${userId}`);
         const user = response.data;
         if (user.state == 'entered') {
             console.log(user.first_name, user.last_name, 'is already in one of the rooms');
@@ -111,7 +122,8 @@ app.post('/api/rooms/:id/enteruser', async (req, res) => {
             if (findRoom.roomStatus == 0) {
                 findRoom.roomStatus = user.id
                 const state = 'entered'
-                const server2 = `http://localhost:4022/api/users/${user.id}/state`;
+                // const server2 = `http://localhost:4022/api/users/${user.id}/state`;
+                const server2 = `http://users:4022/api/users/${user.id}/state`;
                 try {
                     const response = await axios.put(server2, { state });
                     console.log(findRoom);
@@ -145,12 +157,14 @@ app.post('/api/rooms/:id/exituser', async (req, res) => {
     if (findRoom) {
         // const user.id = req.body.user.id;
         const userId = 2;
-        const response = await axios.get(`http://localhost:4022/api/users/${userId}`);
+        // const response = await axios.get(`http://localhost:4022/api/users/${userId}`);
+        const response = await axios.get(`http://users:4022/api/users/${userId}`);
         const user = response.data;
         if (findRoom.roomStatus != 0) {
             findRoom.roomStatus = 0
             const state = 'exited'
-            const server2 = `http://localhost:4022/api/users/${user.id}/state`;
+            // const server2 = `http://localhost:4022/api/users/${user.id}/state`;
+            const server2 = `http://users:4022/api/users/${user.id}/state`;
             try {
                 const response = await axios.put(server2, { state });
                 console.log(findRoom);

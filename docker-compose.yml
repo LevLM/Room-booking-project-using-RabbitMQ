@@ -6,18 +6,29 @@ services:
     ports:
       - "15672:15672"
       - "5672:5672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
   users:
     build: ./users
     ports:
       - '4022:4022'
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
   rooms:
     build: ./rooms
     ports:
       - '5050:5050'
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
   db:
     image: postgres:13.0-alpine
     volumes:
@@ -28,6 +39,11 @@ services:
       - POSTGRES_PASSWORD=ghbdtn11
       - POSTGRES_USER=admin
       - POSTGRES_DB=bookroom
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
 volumes:
   dbdata:
