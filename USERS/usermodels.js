@@ -1,3 +1,12 @@
+const Pool = require('pg').Pool
+const pool = new Pool({
+  user: 'admin',
+  host: 'db',
+  database: 'bookroom',
+  password: 'ghbdtn11',
+  port: 5432,
+})
+
 class User {
   constructor(id, first_name, last_name, pasport_id, data_birth, state) {
         this.id = id;

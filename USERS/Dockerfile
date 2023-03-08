@@ -7,6 +7,7 @@ COPY . .
 RUN npm install
 
 EXPOSE 4022
-# required for docker desktop port mapping
 
-CMD ["node", "users.js"]
+EXPOSE 9229
+
+CMD ["node", "--inspect=0.0.0.0", "users.js"]

@@ -37,33 +37,27 @@ amqp.connect('amqp://rabbitmq:5672', function(error0, connection) {
 
     app2.post('/api/users', (req, res) => {
       const { id, first_name, last_name, pasport_id, data_birth } = req.body;
-      if (!id || !first_name || !last_name || !pasport_id || !data_birth) {
+      if (!first_name || !last_name || !pasport_id || !data_birth) {
           return res.status(400).send({ error: 'Invalid data' });
       }
       const newUser = new User(id, first_name, last_name, pasport_id, data_birth);
       // allUsers.push(newUser);
       newUser.save();
-      // pool.query('INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *', [name, email], (error, results) => {
-      //   if (error) {
-      //     throw error
-      //   }
-      //   response.status(201).send(`User added with ID: ${results.rows[0].id}`)
-      // })
       const message = JSON.stringify(newUser);
       channel.sendToQueue(QUEUE_NAME, Buffer.from(message));
       console.log(" [x] Sent %s", message);
-      res.status(201).send('User created successfully ');
-      console.log('User created successfully ', allUsers)
+      res.status(201).send('User created successfully');
+      console.log('User created successfully ', newUser)
     });
   });
 });
 
-app2.get('/api/users/:id', (req, res) => {
+app2.get('/api/users/:id', async (req, res) => {
     let id = req.params.id;
     console.log('view user id=#' + id);
     const queryText = 'SELECT * FROM users WHERE id = $1';
     const values = [id];
-    const { rows } = pool.query(queryText, values);
+    const { rows } = await pool.query(queryText, values);
     const findUser = rows[0];
     // let findUser = null;
     // for (const user of allUsers) {

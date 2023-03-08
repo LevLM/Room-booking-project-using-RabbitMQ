@@ -1,6 +1,23 @@
 version: '3'
 
 services:
+  db:
+    image: postgres:13.0-alpine
+    volumes:
+      - dbdata:/var/lib/postgresql/data/
+      - ./users/migrations:/migrations/users
+      - ./rooms/migrations:/migrations/rooms
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_PASSWORD=ghbdtn11
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=bookroom
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
   rabbitmq:
     image: rabbitmq:3-management
     ports:
@@ -15,6 +32,7 @@ services:
     build: ./users
     ports:
       - '4022:4022'
+      - '9229:9229'
     depends_on:
       db:
         condition: service_healthy
@@ -29,21 +47,6 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-  db:
-    image: postgres:13.0-alpine
-    volumes:
-      - dbdata:/var/lib/postgresql/data/
-    ports:
-      - '5432:5432'
-    environment:
-      - POSTGRES_PASSWORD=ghbdtn11
-      - POSTGRES_USER=admin
-      - POSTGRES_DB=bookroom
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
 
 volumes:
   dbdata:

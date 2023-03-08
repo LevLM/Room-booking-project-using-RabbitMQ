@@ -17,7 +17,7 @@ const pool = new Pool({
   port: 5432,
 })
 
-const allCreatedRooms = [];
+// const allCreatedRooms = [];
 const Room = require('./roommodels');
 // const User = require('../users/usermodels');
 const QUEUE_NAME = 'user_created';
@@ -25,16 +25,22 @@ const QUEUE_NAME = 'user_created';
 app.post('/api/rooms', (req, res) => {
     const addNewRoom = req.body.roomNumber
     if (typeof addNewRoom == 'number') {
-        for (const room of allCreatedRooms) {
+        for (const room of Room) {
             if (room.roomNumber == addNewRoom) {
                 console.log('room already exist');
                 res.json({error: 'room already exist'});
             }
         }
-        const newCreatedRoom = new Room(addNewRoom, 0);
-        allCreatedRooms.push(newCreatedRoom);
-        res.json(allCreatedRooms)
-        console.log(allCreatedRooms)
+        // const newCreatedRoom = new Room(addNewRoom, 0);
+        const { roomNumber, roomStatus } = req.body;
+        if (!roomNumber || !roomStatus) {
+            return res.status(400).send({ error: 'Invalid data' });
+        }
+        const newRoom = new Room(roomNumber, roomStatus);
+        newRoom.save();
+        // allCreatedRooms.push(newCreatedRoom);
+        res.status(201).send('Room created successfully');
+        console.log('Room created successfully ', newRoom)
     } else {
         console.log('type error')
         res.status(400).json('type error')
@@ -110,10 +116,14 @@ app.post('/api/rooms/:id/enteruser', async (req, res) => {
         }
     }
     if (findRoom) {
-        // const user.id = req.body.user.id;
-        const userId = 2;
+        const userId = req.body.id;
         // const response = await axios.get(`http://localhost:4022/api/users/${userId}`);
-        const response = await axios.get(`http://users:4022/api/users/${userId}`);
+        let response;
+        try {
+            response = await axios.get(`http://users:4022/api/users/${userId}`);
+        } catch (error) {
+                console.log('get failed: ' + error);
+        }
         const user = response.data;
         if (user.state == 'entered') {
             console.log(user.first_name, user.last_name, 'is already in one of the rooms');
@@ -129,7 +139,7 @@ app.post('/api/rooms/:id/enteruser', async (req, res) => {
                     console.log(findRoom);
                     res.status(200).json(findRoom);
                 } catch (error) {
-                    console.log(error);
+                    console.log('put failed: ' + error);
                     res.status(500).json({ error });
                 }
             }
@@ -155,10 +165,14 @@ app.post('/api/rooms/:id/exituser', async (req, res) => {
         }
     }
     if (findRoom) {
-        // const user.id = req.body.user.id;
-        const userId = 2;
+        const userId = req.body.id;
         // const response = await axios.get(`http://localhost:4022/api/users/${userId}`);
-        const response = await axios.get(`http://users:4022/api/users/${userId}`);
+        let response;
+        try {
+            response = await axios.get(`http://users:4022/api/users/${userId}`);
+        } catch (error) {
+                console.log('get failed: ' + error);
+        }
         const user = response.data;
         if (findRoom.roomStatus != 0) {
             findRoom.roomStatus = 0
