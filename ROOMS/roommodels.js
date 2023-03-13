@@ -16,7 +16,7 @@ class Room {
       const client = await pool.connect();
       try {
         await client.query('BEGIN');
-        const queryText = 'INSERT INTO users(roomNumber, roomStatus) VALUES($1, $2) RETURNING roomNumber';
+        const queryText = 'INSERT INTO rooms(roomNumber, roomStatus) VALUES($1, $2) RETURNING roomNumber';
         const values = [this.roomNumber, this.roomStatus];
         const { rows } = await client.query(queryText, values);
         await client.query('COMMIT');

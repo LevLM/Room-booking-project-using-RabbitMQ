@@ -36,32 +36,32 @@ amqp.connect('amqp://rabbitmq:5672', function(error0, connection) {
       });
 
     app2.post('/api/users', (req, res) => {
-      const { id, first_name, last_name, pasport_id, data_birth } = req.body;
-      if (!first_name || !last_name || !pasport_id || !data_birth) {
+      const { user_id, first_name, last_name, pasport_id, data_birth } = req.body;
+      if (!user_id || !first_name || !last_name || !pasport_id || !data_birth) {
           return res.status(400).send({ error: 'Invalid data' });
       }
-      const newUser = new User(id, first_name, last_name, pasport_id, data_birth);
+      const newUser = new User(user_id, first_name, last_name, pasport_id, data_birth);
       // allUsers.push(newUser);
       newUser.save();
       const message = JSON.stringify(newUser);
       channel.sendToQueue(QUEUE_NAME, Buffer.from(message));
       console.log(" [x] Sent %s", message);
-      res.status(201).send('User created successfully');
+      res.status(201).send('User created successfully: ' + JSON.stringify(newUser));
       console.log('User created successfully ', newUser)
     });
   });
 });
 
 app2.get('/api/users/:id', async (req, res) => {
-    let id = req.params.id;
-    console.log('view user id=#' + id);
-    const queryText = 'SELECT * FROM users WHERE id = $1';
-    const values = [id];
+    let user_id = req.params.id;
+    console.log('view user id=#' + user_id);
+    const queryText = 'SELECT * FROM users WHERE user_id = $1';
+    const values = [user_id];
     const { rows } = await pool.query(queryText, values);
     const findUser = rows[0];
     // let findUser = null;
     // for (const user of allUsers) {
-    //     if (user.id == id) {
+    //     if (user.user_id == user_id) {
     //         findUser = user;
     //         break;
     //     }
@@ -71,9 +71,9 @@ app2.get('/api/users/:id', async (req, res) => {
 });
 
 // app2.put('/api/users/:id/state', (req, res) => {
-//     let id = req.params.id
+//     let user_id = req.params.id
 //     const state = req.body.state;
-//     const user = allUsers.find(user => user.id == id);
+//     const user = allUsers.find(user => user.user_id == user_id);
 //     if (!user) {
 //       return res.status(404).send({error: 'User not found'});
 //     }
@@ -84,21 +84,21 @@ app2.get('/api/users/:id', async (req, res) => {
 
 app2.put('/api/users/:id/state', async (req, res) => {
   try {
-    const id = req.params.id;
+    const user_id = req.params.id;
     const state = req.body.state;
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      const selectQuery = 'SELECT * FROM users WHERE id = $1';
-      const selectValues = [id];
+      const selectQuery = 'SELECT * FROM users WHERE user_id = $1';
+      const selectValues = [user_id];
       const { rows } = await client.query(selectQuery, selectValues);
       if (rows.length === 0) {
         return res.status(404).send({ error: 'User not found' });
       }
       const user = rows[0];
       user.state = state;
-      const updateQuery = 'UPDATE users SET state = $1 WHERE id = $2';
-      const updateValues = [state, id];
+      const updateQuery = 'UPDATE users SET state = $1 WHERE user_id = $2';
+      const updateValues = [state, user_id];
       await client.query(updateQuery, updateValues);
       await client.query('COMMIT');
       console.log(rows);
