@@ -19,7 +19,9 @@ class Room {
         const queryText = 'INSERT INTO rooms(roomNumber, roomStatus) VALUES($1, $2) RETURNING roomNumber';
         const values = [this.roomNumber, this.roomStatus];
         const { rows } = await client.query(queryText, values);
+        console.log('Room inserted into database with room number:', rows[0]);
         await client.query('COMMIT');
+        console.log(rows[0]);
         return rows[0].id;
       } catch (error) {
         await client.query('ROLLBACK');

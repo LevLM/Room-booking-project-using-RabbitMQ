@@ -40,14 +40,35 @@ amqp.connect('amqp://rabbitmq:5672', function(error0, connection) {
       if (!user_id || !first_name || !last_name || !pasport_id || !data_birth) {
           return res.status(400).send({ error: 'Invalid data' });
       }
-      const newUser = new User(user_id, first_name, last_name, pasport_id, data_birth);
-      // allUsers.push(newUser);
-      newUser.save();
-      const message = JSON.stringify(newUser);
-      channel.sendToQueue(QUEUE_NAME, Buffer.from(message));
-      console.log(" [x] Sent %s", message);
-      res.status(201).send('User created successfully: ' + JSON.stringify(newUser));
-      console.log('User created successfully ', newUser)
+      let userExists = false;
+      pool.query('SELECT user_id, first_name, last_name, pasport_id, data_birth FROM users', (error, result) => {
+        if (error) {
+            console.error('Error executing query', error);
+            return;
+        }
+        const allCreatedUsers = result.rows.map(row => new User(row.user_id, row.first_name, row.last_name, row.pasport_id, row.data_birth));
+        console.log(allCreatedUsers);
+        for (const user of allCreatedUsers) {
+            if (user.user_id == user_id) {
+                userExists = true;
+                break;
+            }
+        }
+      
+        if (userExists) {
+          console.log('user already exist');
+          res.json({error: 'user already exist'});
+        } else {
+          const newUser = new User(user_id, first_name, last_name, pasport_id, data_birth);
+          // allUsers.push(newUser);
+          newUser.save();
+          const message = JSON.stringify(newUser);
+          channel.sendToQueue(QUEUE_NAME, Buffer.from(message));
+          console.log(" [x] Sent %s", message);
+          res.status(201).send('User created successfully: ' + JSON.stringify(newUser));
+          console.log('User created successfully ', newUser)
+        }
+      }); 
     });
   });
 });
