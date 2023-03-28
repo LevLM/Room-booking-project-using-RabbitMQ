@@ -18,11 +18,8 @@ const pool = new Pool({
   port: 5432,
 })
 
-// const allUsers = [];
-
 const QUEUE_NAME = 'user_created';
 
-// amqp.connect('amqp://localhost:5672', function(error0, connection) {
 amqp.connect('amqp://rabbitmq:5672', function(error0, connection) {  
     if (error0) {
       throw error0;
@@ -60,7 +57,6 @@ amqp.connect('amqp://rabbitmq:5672', function(error0, connection) {
           res.json({error: 'user already exist'});
         } else {
           const newUser = new User(user_id, first_name, last_name, pasport_id, data_birth);
-          // allUsers.push(newUser);
           newUser.save();
           const message = JSON.stringify(newUser);
           channel.sendToQueue(QUEUE_NAME, Buffer.from(message));
@@ -80,28 +76,9 @@ app2.get('/api/users/:id', async (req, res) => {
     const values = [user_id];
     const { rows } = await pool.query(queryText, values);
     const findUser = rows[0];
-    // let findUser = null;
-    // for (const user of allUsers) {
-    //     if (user.user_id == user_id) {
-    //         findUser = user;
-    //         break;
-    //     }
-    // }
     console.log(findUser ? findUser : 'not found');
     res.json(findUser ? findUser : 'not found');
 });
-
-// app2.put('/api/users/:id/state', (req, res) => {
-//     let user_id = req.params.id
-//     const state = req.body.state;
-//     const user = allUsers.find(user => user.user_id == user_id);
-//     if (!user) {
-//       return res.status(404).send({error: 'User not found'});
-//     }
-//     user.state = state;
-//     console.log(allUsers)
-//     res.status(200).json({ message: 'User state updated successfully' });
-// });
 
 app2.put('/api/users/:id/state', async (req, res) => {
   try {

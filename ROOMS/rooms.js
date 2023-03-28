@@ -22,22 +22,18 @@ const QUEUE_NAME = 'user_created';
 
 app.post('/api/rooms', (req, res) => {
     const NewRoomNumber = req.body.roomNumber
+    console.log(NewRoomNumber);
     if (typeof NewRoomNumber !== 'number') {
         return 'type error';
     }
-    let roomExists = false;
-    pool.query('SELECT roomNumber, roomStatus FROM rooms', (error, result) => {
+    // let roomExists = false;
+    Room.getAllRooms((error, allCreatedRooms) => {
         if (error) {
-            console.error('Error executing query', error);
-            return;
+          console.log('Error:', error);
+          res.status(500).send('Error: Could not get all rooms');
+          return;
         }
-        const allCreatedRooms = result.rows.map(row => new Room(row.roomnumber, row.roomstatus));
-        for (const room of allCreatedRooms) {
-            if (room.roomNumber == NewRoomNumber) {
-                roomExists = true;
-                break;
-            }
-        }
+        const roomExists = allCreatedRooms.some(room => room.roomNumber == NewRoomNumber);
         if (roomExists) {
             console.log('room already exist');
             res.json({error: 'room already exist'});
@@ -60,31 +56,11 @@ app.post('/api/rooms', (req, res) => {
 });
 
 app.delete('/api/rooms/:id', (req, res) => {
-    pool.query('SELECT roomNumber, roomStatus FROM rooms', (error, result) => {
-        if (error) {
-            console.error('Error executing query', error);
-            return;
-        }
-        const allCreatedRooms = result.rows.map(row => new Room(row.roomNumber, row.roomStatus));
-    
-        if (allCreatedRooms.length == 0) {
-            res.json("allCreatedRooms Is Empty")
-            return "allCreatedRooms Is Empty"
-        }
-    });
     let id = req.params.id;
-    pool.query('DELETE FROM rooms WHERE roomNumber = $1', [id], (error, result) => {
+    Room.deleteRoom(id, (error) => {
         if (error) {
-            console.error('Error executing query', error);
-            return res.status(500).send('Error deleting room');
+          return res.status(500).send('Error deleting room');
         }
-
-        if (result.rowCount === 0) {
-            console.log('Room not found');
-            return res.status(404).send('Room not found');
-        }
-
-        console.log(`Room ${id} deleted successfully`);
         res.status(204).send();
     });
 });
