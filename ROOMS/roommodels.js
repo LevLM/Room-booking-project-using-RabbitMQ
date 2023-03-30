@@ -30,6 +30,12 @@ class Room {
         client.release();
       }
     }
+    static async getRoomByNumber(roomNumber) {
+      const queryText = 'SELECT * FROM rooms WHERE roomNumber = $1';
+      const values = [roomNumber];
+      const { rows } = await pool.query(queryText, values);
+      return rows.length ? rows[0] : null;
+    }
     static getAllRooms(callback) {
       pool.query('SELECT roomNumber, roomStatus FROM rooms', (error, result) => {
         if (error) {

@@ -80,13 +80,11 @@ describe("GET (rooms):", () => {
 
 describe("GET (rooms):", () => {
   const addNewRoom = {roomNumber: 150}
-  // const newCreatedRoom = new Room(addNewRoom, 0);
   const newCreatedRoom = {roomNumber: 150, roomStatus: 0};
   beforeAll(async () => {await request(app).post("/api/rooms").send(addNewRoom);})
   afterAll(async () => {await request(app).delete("/api/rooms/150")})
   it("server respond 200 status code /search/:id and return room [id]", async () => {
     const response = await request(app).get("/api/rooms/150");
-    // expect(response.body).toBe(newCreatedRoom);
     expect(response.body).toEqual(newCreatedRoom);
   });
 });

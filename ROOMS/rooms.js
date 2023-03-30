@@ -26,7 +26,6 @@ app.post('/api/rooms', (req, res) => {
     if (typeof NewRoomNumber !== 'number') {
         return 'type error';
     }
-    // let roomExists = false;
     Room.getAllRooms((error, allCreatedRooms) => {
         if (error) {
           console.log('Error:', error);
@@ -59,7 +58,7 @@ app.delete('/api/rooms/:id', (req, res) => {
     let id = req.params.id;
     Room.deleteRoom(id, (error) => {
         if (error) {
-          return res.status(500).send('Error deleting room');
+          return res.status(503).send('Error deleting room');
         }
         res.status(204).send();
     });
@@ -68,10 +67,7 @@ app.delete('/api/rooms/:id', (req, res) => {
 app.get('/api/rooms/:id', async (req, res) => {
     let roomNumber = req.params.id;
     console.log('view room by roomNumber ' + roomNumber);
-    const queryText = 'SELECT * FROM rooms WHERE roomNumber = $1';
-    const values = [roomNumber];
-    const { rows } = await pool.query(queryText, values);
-    const findRoom = rows[0];
+    const findRoom = await Room.getRoomByNumber(roomNumber);
     console.log(findRoom ? findRoom : 'not found');
     res.json(findRoom ? findRoom : 'not found');
 });
