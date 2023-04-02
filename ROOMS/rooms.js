@@ -58,7 +58,7 @@ app.delete('/api/rooms/:id', (req, res) => {
     let id = req.params.id;
     Room.deleteRoom(id, (error) => {
         if (error) {
-          return res.status(503).send('Error deleting room');
+          return res.status(404).send('Error deleting room');
         }
         res.status(204).send();
     });
