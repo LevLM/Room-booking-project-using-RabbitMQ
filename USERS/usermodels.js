@@ -33,6 +33,12 @@ class User {
       client.release();
     }
   }
+  static async getUserByUser_id(user_id) {
+    const queryText = 'SELECT * FROM users WHERE user_id = $1';
+    const values = [user_id];
+    const { rows } = await pool.query(queryText, values);
+    return rows.length ? rows[0] : null;
+  }
 }
 
 module.exports = User;

@@ -30,6 +30,56 @@ class Room {
         client.release();
       }
     }
+    static async getRoomByNumber(roomNumber) {
+      const queryText = 'SELECT * FROM rooms WHERE roomNumber = $1';
+      const values = [roomNumber];
+      const { rows } = await pool.query(queryText, values);
+      return rows.length ? rows[0] : null;
+    }
+    static getAllRooms(callback) {
+      pool.query('SELECT roomNumber, roomStatus FROM rooms', (error, result) => {
+        if (error) {
+          console.error('Error executing query', error);
+          callback(error, null);
+          return;
+        }
+        const allCreatedRooms = result.rows.map(row => new Room(row.roomnumber, row.roomstatus));
+        callback(null, allCreatedRooms);
+      });
+    }
+    static findByRoomNumber(roomNumber, callback) {
+      pool.query('SELECT roomNumber, roomStatus FROM rooms WHERE roomNumber = $1', [roomNumber], (error, result) => {
+        if (error) {
+          console.error('Error executing query', error);
+          callback(error, null);
+          return;
+        }
+        if (result.rows.length > 0) {
+          const room = new Room(result.rows[0].roomNumber, result.rows[0].roomStatus);
+          callback(null, room);
+        } else {
+          callback(null, null);
+        }
+      });
+    }
+    static deleteRoom(roomNumber, callback) {
+      const query = {
+        text: 'DELETE FROM rooms WHERE roomNumber = $1',
+        values: [roomNumber],
+      };
+      pool.query(query, (error, result) => {
+        if (error) {
+          console.error('Error executing query', error);
+          return callback(error);
+        }
+        if (result.rowCount == 0) {
+          console.log('Room not found');
+          return callback('Room not found');
+        }
+        console.log(`Room ${roomNumber} deleted successfully`);
+        callback(null);
+      });
+    }
 }
   
 module.exports = Room;

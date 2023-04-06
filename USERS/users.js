@@ -18,11 +18,8 @@ const pool = new Pool({
   port: 5432,
 })
 
-// const allUsers = [];
-
 const QUEUE_NAME = 'user_created';
 
-// amqp.connect('amqp://localhost:5672', function(error0, connection) {
 amqp.connect('amqp://rabbitmq:5672', function(error0, connection) {  
     if (error0) {
       throw error0;
@@ -36,39 +33,42 @@ amqp.connect('amqp://rabbitmq:5672', function(error0, connection) {
       });
 
     app2.post('/api/users', (req, res) => {
-      const { user_id, first_name, last_name, pasport_id, data_birth } = req.body;
-      if (!user_id || !first_name || !last_name || !pasport_id || !data_birth) {
-          return res.status(400).send({ error: 'Invalid data' });
+      try {
+        const { user_id, first_name, last_name, pasport_id, data_birth } = req.body;
+        if (!user_id || !first_name || !last_name || !pasport_id || !data_birth) {
+            return res.status(400).send({ error: 'Invalid data' });
+        }
+        let userExists = false;
+        pool.query('SELECT user_id, first_name, last_name, pasport_id, data_birth FROM users', (error, result) => {
+          if (error) {
+              console.error('Error executing query', error);
+              return;
+          }
+          const allCreatedUsers = result.rows.map(row => new User(row.user_id, row.first_name, row.last_name, row.pasport_id, row.data_birth));
+          console.log(allCreatedUsers);
+          for (const user of allCreatedUsers) {
+              if (user.user_id == user_id) {
+                  userExists = true;
+                  break;
+              }
+          }
+          if (userExists) {
+            console.log('user already exist');
+            res.json({error: 'user already exist'});
+          } else {
+            const newUser = new User(user_id, first_name, last_name, pasport_id, data_birth);
+            newUser.save();
+            const message = JSON.stringify(newUser);
+            channel.sendToQueue(QUEUE_NAME, Buffer.from(message));
+            console.log(" [x] Sent %s", message);
+            res.status(201).send('User created successfully: ' + JSON.stringify(newUser));
+            console.log('User created successfully ', newUser)
+          }
+        });
+      } catch (error) {
+        console.error('Error creating user', error);
+        res.status(500).send({ error: 'Something went wrong while creating user' });
       }
-      let userExists = false;
-      pool.query('SELECT user_id, first_name, last_name, pasport_id, data_birth FROM users', (error, result) => {
-        if (error) {
-            console.error('Error executing query', error);
-            return;
-        }
-        const allCreatedUsers = result.rows.map(row => new User(row.user_id, row.first_name, row.last_name, row.pasport_id, row.data_birth));
-        console.log(allCreatedUsers);
-        for (const user of allCreatedUsers) {
-            if (user.user_id == user_id) {
-                userExists = true;
-                break;
-            }
-        }
-      
-        if (userExists) {
-          console.log('user already exist');
-          res.json({error: 'user already exist'});
-        } else {
-          const newUser = new User(user_id, first_name, last_name, pasport_id, data_birth);
-          // allUsers.push(newUser);
-          newUser.save();
-          const message = JSON.stringify(newUser);
-          channel.sendToQueue(QUEUE_NAME, Buffer.from(message));
-          console.log(" [x] Sent %s", message);
-          res.status(201).send('User created successfully: ' + JSON.stringify(newUser));
-          console.log('User created successfully ', newUser)
-        }
-      }); 
     });
   });
 });
@@ -76,32 +76,10 @@ amqp.connect('amqp://rabbitmq:5672', function(error0, connection) {
 app2.get('/api/users/:id', async (req, res) => {
     let user_id = req.params.id;
     console.log('view user id=#' + user_id);
-    const queryText = 'SELECT * FROM users WHERE user_id = $1';
-    const values = [user_id];
-    const { rows } = await pool.query(queryText, values);
-    const findUser = rows[0];
-    // let findUser = null;
-    // for (const user of allUsers) {
-    //     if (user.user_id == user_id) {
-    //         findUser = user;
-    //         break;
-    //     }
-    // }
+    const findUser = await User.getUserByUser_id(user_id);
     console.log(findUser ? findUser : 'not found');
     res.json(findUser ? findUser : 'not found');
 });
-
-// app2.put('/api/users/:id/state', (req, res) => {
-//     let user_id = req.params.id
-//     const state = req.body.state;
-//     const user = allUsers.find(user => user.user_id == user_id);
-//     if (!user) {
-//       return res.status(404).send({error: 'User not found'});
-//     }
-//     user.state = state;
-//     console.log(allUsers)
-//     res.status(200).json({ message: 'User state updated successfully' });
-// });
 
 app2.put('/api/users/:id/state', async (req, res) => {
   try {
